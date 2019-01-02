@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Music Library</title>
+        <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+    <body>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+        <script src="./js/audiojs/audiojs/audio.js"></script>
+        <script>window.$ = window.jQuery = require('jquery');</script>
+        <script src="js/filetree/jquery.easing.js"></script>
+        <script src="js/filetree/jqueryFileTree.js"></script>
+        <link rel="stylesheet" href="js/filetree/jqueryFileTree.css">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script>
+            var user_id= localStorage.insert_id;
+            console.log(user_id);
+            if(typeof(user_id) == "undefined")
+            {
+                location.href="about.html";
+            }
+            function get_path()
+            {
+                var ex_path;
+                var mysql  = require('mysql');
+                    var connection = mysql.createConnection({
+                    host     : 'localhost',
+                    user     : 'root',
+                    password : null,
+                    database : 'music_lib'
+                });
+                
+                connection.connect();
+                var sql_qry =  "select * from rvm_access_folder where id=1";
+                connection.query(sql_qry, function (error, results, fields) {
+                if (error) console.log(error.code);
+                else 
+                {
+                    
+                    localStorage.existing_path=results[0].path;
+                    expath=localStorage.existing_path;
+                    //console.log(localStorage.existing_path);
+                }
+                });
+                return ex_path;
+                connection.end(); 
+            }
+            var get_paths= get_path();
+            var ex_path=localStorage.existing_path;
+               
+           
+        </script>
+        <div class="col-md-12 fleft pad0 mt-4">
+            <div class="col-md-8 fleft pad0">
+            <div class="card">
+                <h5 class="card-header">Media</h5>
+                <div class="card-body pad0">
+                    <div class="col-md-12 fleft pad0">
+                        <div class="col-md-12 fleft  pad0 player_div">
+                            <div class="col-md-5 fleft pad0" ><img src="img/rvm.png" id="picture" style="width: 100%;height:290px"></div>
+                            <div class="col-md-7 fleft pad0" id="title">
+                                <h1 id="track">Track</h1>
+                               <marquee><h4 id="artist">Artist</h4></marquee> 
+                                <h4 id="album">Album</h4>
+                                <div class="col-md-12 fleft txtcenter">
+                                    <div id="loading"></div>
+                                    <button type="button" id="prevBtn" class="btn btn-primary-outline btn-lg">
+                                        <i class="fa fa-step-backward fa-2x fa-inverse"></i>
+                                    </button>
+                                    <button type="button" id="playBtn" class="playpause btn btn-primary-outline btn-lg">
+                                        <i class="fa fa-play-circle fa-4x fa-inverse"></i>
+                                    </button>
+                                    <button type="button" id="pauseBtn" class="playpause btn btn-primary-outline btn-lg" style="display: none">
+                                        <i class="fa fa-pause-circle fa-4x fa-inverse"></i>
+                                    </button>
+                                    <button type="button" id="nextBtn" class="btn btn-primary-outline btn-lg">
+                                        <i class="fa fa-step-forward fa-2x fa-inverse"></i>
+                                    </button>
+                                </div>
+                                <div class="col-md-12 fleft txtcenter">
+                                    <audio preload></audio>
+                                </div>
+                              </div>
+                          </div>
+                      </div>
+              
+              
+            </div>
+          </div>
+          
+          <div id="wrapper">
+            <ol class="sortableList scrollbar"  id="nav">
+                
+            </ol>
+        </div>
+          </div>
+          <div class="col-md-4 fright pad0">
+            <div class="card">
+              <h5 class="card-header">Media Library</h5>
+              <div class="card-body" style="padding: 5px;">
+                <div id="holder">
+                        <input type="file" id="web_dir"  webkitdirectory />
+                        <div id="capture">Drag Sharable Folder Here or Browse</div>
+                </div>
+                <div class="col-md-12 fleft pad0 mt-3 mb-3">
+                    <button type="button" id="save_path" class="col-md-12 fleft btn btn-success">Save Path</button>
+                    <input type="hidden" id="hidden_path" name="hidden_path" value=""/>
+                </div>
+                <div class="example">
+                    <div id="fileTreeDemo_1" class="demo"></div>
+                </div>
+                <input type="hidden" id="ajax_len" value=""/>
+               
+                
+              </div>
+            </div>
+        </div>
+      </div>
+      <style>
+          #capture
+          {
+              color:#007bff;
+              cursor: pointer;
+          }
+          #holder
+          {
+            padding: 20px;
+            border: 2px dashed #007bff;
+            text-align: center;
+          }
+         #web_dir
+         {
+             display: none;
+         }
+          body{
+            overflow: hidden;
+          }
+          UL.jqueryFileTree A {
+   
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: inherit;
+}
+@keyframes heartBeat {
+    0%,
+    100% {
+        transform: scale(.9)
+    }
+    25% {
+        transform: scale(1.1)
+    }
+}
+
+@keyframes heartBeatInner {
+    0%,
+    10%,
+    100% {
+        transform: scale(.9)
+    }
+    25% {
+        transform: scale(1.1)
+    }
+}
+.playing span.current_play
+{
+    display: inline-block;
+}
+.current_play
+{
+    font-size: 20px;
+    color:red;
+    display: none;
+}
+.demo 
+{
+    width: 100%;
+    height: 538px;
+    padding: 5px;
+    overflow-x: hidden;
+}
+
+.fa-headphones::before {
+    animation: 1s ease 0s normal none infinite running heartBeatInner;
+   
+    display: block;
+    transition: all 1s ease 0s
+}
+
+
+#nav::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 10px;
+	background-color: #F5F5F5;
+}
+
+#nav::-webkit-scrollbar
+{
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+#nav::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #dc3545;
+}
+
+
+
+.scrollbar
+{
+	margin-left: 30px;
+	float: left;
+	height: 300px;
+	width: 6px;
+	background: #F5F5F5;
+	overflow-y: scroll;
+	margin-bottom: 25px;
+}
+.demo::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 10px;
+	background-color: #F5F5F5;
+}
+
+.demo::-webkit-scrollbar
+{
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+.demo::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #dc3545;
+}
+#nav {
+    width: 100%;
+    height: 395px;
+    line-height: 2em;
+    border: 1px solid #ccc;
+    padding: 0;
+    margin: 0;
+    overflow: scroll;
+    overflow-x: hidden;
+}
+          .progress
+          {
+            margin: 0 ! important;
+          }
+          .audiojs .play-pause
+          {
+              display: none;
+          }
+          .audiojs .scrubber {
+    position: relative;
+    float: left;
+    width: 285px;
+    background: #5a5a5a;
+    height: 14px;
+    margin: 10px;
+    border-top: 1px solid #3f3f3f;
+    border-left: 0px;
+    border-bottom: 0px;
+    overflow: hidden;
+    
+}
+.audiojs .time {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    /* float: left; */
+    height: 36px;
+    line-height: 36px;
+    margin: 0;
+    padding: 0;
+    /* border-left: 1px solid #000; */
+    color: #ddd;
+    border-left: none;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+.audiojs .progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 14px;
+    width: 0px;
+    background: #dc3545!important;
+    z-index: 1;
+    /* background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ccc), color-stop(0.5, #ddd), color-stop(0.51, #ccc), color-stop(1, #ccc)); */
+    background-image: -moz-linear-gradient(center top, #ccc 0%, #ddd 50%, #ccc 51%, #ccc 100%);
+}
+.audiojs .loaded {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 14px;
+    width: 0px;
+    background: #e9ecef;
+    /* background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.5, #333), color-stop(0.51, #222), color-stop(1, #222)); */
+    background-image: -moz-linear-gradient(center top, #222 0%, #333 50%, #222 51%, #222 100%);
+    border-radius: 5px;
+}
+        #timer {
+    float: left;
+    color: #fff;
+}
+#duration {
+    float: right;
+    color: #fff;
+}
+#album
+{
+    color:#fff;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: inherit;
+}
+#track
+{
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: inherit;
+}
+        .player_div
+        {
+          background: #000;
+          text-align: center;
+        }
+        .pad0
+        {
+          padding: 0;
+        }
+        .fleft
+        {
+          float: left;
+        }
+        .fright
+        {
+          float: right;
+        }
+        .audiojs {
+    width: 100%;
+        }
+        #artist
+        {
+          color:#fff;
+          
+        }
+        .txtcenter
+        {
+          text-align: center;
+        }
+        #save_path
+        {
+            display: none;
+        }
+h1 { color: #fff; font-size: 1.2em; padding: 14px 2px 12px; margin: 0px; }
+        h1 em { font-style: normal; color: #999; }
+        
+
+ol { padding: 0px; margin: 0px; list-style: decimal-leading-zero inside; color: #ccc;  border-top: 1px solid #ccc; font-size: 0.9em; }
+ol li { position: relative; margin: 0px; padding:0; padding-left: 10px; border-bottom: 1px solid #ccc; cursor: pointer; width: 100% ! important; }
+ol li a {  text-indent: -3.3ex;  }
+li.playing { color: #aaa; text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.3); }
+li.playing a { color: #000; }
+li.playing:before { content: '♬'; width: 14px; height: 14px; padding: 3px; line-height: 14px; margin: 0px; position: absolute; left: -24px; top: 9px; color: #000; font-size: 13px; text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2); }
+
+#shortcuts { position: fixed; bottom: 0px; width: 100%; color: #666; font-size: 0.9em; margin: 60px 0px 0px; padding: 20px 20px 15px; background: #f3f3f3; background: rgba(240, 240, 240, 0.7); }
+#shortcuts div { width: 460px; margin: 0px auto; }
+#shortcuts h1 { margin: 0px 0px 6px; }
+#shortcuts p { margin: 0px 0px 18px; }
+#shortcuts em { font-style: normal; background: #d3d3d3; padding: 3px 9px; position: relative; left: -3px;
+    -webkit-border-radius: 4px; -moz-border-radius: 4px; -o-border-radius: 4px; border-radius: 4px;
+    -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); -moz-box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); -o-box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); }
+
+@media screen and (max-device-width: 480px) {
+    #wrapper { position: relative; left: -3%; }
+    #shortcuts { display: none; }
+}
+.remove_list
+{
+    padding-top: 10px;
+    padding-right: 10px;
+}
+.credit {
+    text-align: center;
+}
+      </style>
+<script>
+    const fs = require('fs');
+    $(function() 
+    {
+        
+        // Setup the player to autoplay the next track
+        var a = audiojs.createAll({
+            trackEnded: function() {
+                var next = $('ol li.playing').next();
+                if (!next.length) next = $('ol li').first();
+                next.addClass('playing').siblings().removeClass('playing');
+                audio.load($('a', next).attr('data-src'));
+                audio.play();
+            }
+        });
+
+        // Load in the first track
+        var audio = a[0];
+        first = $('ol a').attr('data-src');
+        $('ol li').first().addClass('playing');
+        audio.load(first);
+
+        // Load in a track on click
+        $(document).on("click","ol li a",function(e) {
+            e.preventDefault();
+            $(this).parent().addClass('playing').siblings().removeClass('playing');
+            $(this).parent().append();
+            $("li.playing span").addClass("current_play fa fa-headphones");
+            $("#nav li .remove_list").show();
+            //console.log($(this).text());
+            
+            audio.load($(this).attr('data-src'));
+            var data1=$(this).attr('data-src');
+            audio.play();
+            data1 = data1.replace(/\\/g, '/');
+            console.log(data1);
+            file_info(data1);
+            $("#pauseBtn").show();
+            $("#playBtn").hide();
+           
+        });
+        if(user_id==1)
+        {
+            $("#holder").show();
+        }
+        else
+        {
+            $("#holder").hide();
+        }
+        get_player_list();
+        $(document).ready(function(){
+           
+            
+            setTimeout(function(){
+                var len=$("#nav li").length;
+                $("#ajax_len").val(len);
+            setInterval(function(){ajax_player_list($("#ajax_len").val())}, 2000);}, 1000);
+            
+        });
+        function ajax_player_list(last_rec)
+        {
+            var mysql      = require('mysql');
+            var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+          });
+        connection.connect();
+       
+        var sql_qry =  "Select * from rvm_player_list limit "+last_rec+",1";
+        console.log(sql_qry);
+        connection.query(sql_qry, function (error, results, fields) {
+        if (error) console.log(error.code);
+        else 
+        {
+           
+                var rec_len=results.length;
+                //console.log(results);
+                if(rec_len>0)
+                {
+                    const path = require('path');
+                    var filename = results[0].player_text;
+                    path.parse(filename).name; 
+                    path.parse(filename).ext;
+                    var selected_file="<li><span></span><a href='#' data-src='"+filename+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove' id='"+results[0].id+ "'></i></li>";
+                    $("#nav").append(selected_file);
+                    var len=$("#nav li").length;
+                    $("#ajax_len").val(len);
+                }
+                
+        }
+        });
+        connection.end();
+        }
+        function add_player_list(text,added_by)
+    {
+
+        var mysql      = require('mysql');
+            var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+          });
+        connection.connect();
+        var res = text.replace(/\\/g, '\\\\'); 
+        var sql_qry =  "INSERT INTO rvm_player_list (player_text, added_by) VALUES (\""+res+"\", '"+added_by+"')";
+        connection.query(sql_qry, function (error, results, fields) {
+        if (error) console.log(error.code);
+        else 
+        {
+            var inserted_id=results.insertId;
+            const path = require('path');
+            var filename = res;
+            path.parse(filename).name; 
+            path.parse(filename).ext;
+
+            var selected_file="<li><span></span> <a href='#' data-src='"+filename+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove' id='"+inserted_id+ "'></i></li>";
+            //$("#nav").append(selected_file);
+        }
+        });
+        connection.end();
+    }
+   
+
+    function get_player_list()
+    {
+        console.log("get");
+        var mysql      = require('mysql');
+        var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+        });
+        connection.connect();
+        var sql_qry =  "select id,player_text from  rvm_player_list";
+        connection.query(sql_qry, function (error, results, fields) {
+            if (error) console.log(error.code);
+            else 
+            {
+                $("#nav").html("");
+                results.forEach(function(row) 
+                {
+                    const path = require('path');
+                    var filename = row.player_text;
+                    path.parse(filename).name; 
+                    path.parse(filename).ext;
+                    var selected_file="<li><span></span> <a href='#' data-src='"+filename+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove' id='"+row.id+ "'></i></li>";
+                    $("#nav").append(selected_file);
+                });
+            }
+        });
+        connection.end();
+    }
+    
+        if(ex_path!="")
+        {
+            console.log(ex_path);
+            $('#fileTreeDemo_1').fileTree({ root: ex_path, script: 'js/filetree/connectors/getfile_list.js' }, function(file) { 
+            //alert(file);
+            const path = require('path');
+            var filename = file;
+            path.parse(filename).name; 
+            path.parse(filename).ext;
+            var selected_file="<li><span></span> <a href='#' data-src='"+file+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove'></i></li>";
+            var added_list=add_player_list(file,user_id);
+            
+            
+            //$("#nav").append(selected_file);
+
+            });
+        }
+        // Keyboard shortcuts
+        $(document).keydown(function(e) 
+        {
+            var unicode = e.charCode ? e.charCode : e.keyCode;
+            // right arrow
+            if (unicode == 39) 
+            {
+                var next = $('li.playing').next();
+                if (!next.length) next = $('ol li').first();
+                next.find('a').click();
+                // back arrow
+            } 
+            else if (unicode == 37) 
+            {
+                var prev = $('li.playing').prev();
+                if (!prev.length) prev = $('ol li').last();
+                prev.find('a').click();
+                // spacebar
+            } 
+            else if (unicode == 32) 
+            {
+                audio.playPause();
+                $(".playpause").toggle();
+            }
+        });
+        $('#playBtn,#pauseBtn').click(function(e) 
+        {
+            audio.playPause();
+            $(".playpause").toggle();
+           
+        });
+        $('#nextBtn').click(function(e) 
+        {
+            var next = $('li.playing').next();
+            if (!next.length) next = $('ol li').first();
+            next.find('a').click();
+            
+        });
+        $('#prevBtn').click(function(e) 
+        { 
+            var prev = $('li.playing').prev();
+            if (!prev.length) prev = $('ol li').last();
+
+            prev.find('a').click();
+        });
+
+
+    });
+    $('#web_dir').change(function () 
+    {
+       
+            var path=this.files[0].path;
+            $("#hidden_path").val(path);
+            $("#save_path").show();
+            $('#fileTreeDemo_1').fileTree({ root: path, script: 'js/filetree/connectors/getfile_list.js' }, function(file) { 
+                //alert(file);
+                const path = require('path');
+                var filename = file;
+                path.parse(filename).name; 
+                path.parse(filename).ext;
+                var selected_file="<li><span></span> <a href='#' data-src='"+file+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove'></i></li>";
+                $("#nav").append(selected_file);
+               
+
+   
+            });
+        });
+   
+    document.addEventListener('drop', function (e) 
+    {
+        e.preventDefault();
+        e.stopPropagation();
+        for (let f of e.dataTransfer.files) 
+        {
+            console.log('File(s) you dragged here: ', f.path);
+            $("#save_path").show();
+            $("#hidden_path").val(f.path);
+            var link = f.path;
+            $('#fileTreeDemo_1').fileTree({ root: f.path, script: 'js/filetree/connectors/getfile_list.js' }, function(file) { 
+                const path = require('path');
+                var filename = file;
+                path.parse(filename).name; 
+                path.parse(filename).ext;
+                var selected_file="<li><span></span> <a href='#' data-src='"+file+ "'>"+path.parse(filename).name+ "</a><i class='remove_list fright fa fa-remove'></i></li>";
+                $("#nav").append(selected_file);
+            });
+        }
+    });
+    document.addEventListener('dragover', function (e) 
+    {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
+    $(document).on("click","#save_path",function(e) 
+    {
+        e.preventDefault();
+        var hidden_path=$("#hidden_path").val();
+       
+        if(hidden_path!="")
+        {
+            var str = hidden_path;
+            var res = str.replace(/\\/g, '\\\\');
+            var mysql      = require('mysql');
+            var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+          });
+          
+          connection.connect();
+          var select_sql = 'SELECT * from rvm_access_folder where id=1';
+          connection.query(select_sql, function (error, results, fields) {
+            if (error) console.log(error.code);
+            else 
+            {
+                update_path(results.length,res);
+                
+            }
+        });
+        connection.end(); 
+        }
+        else
+        {
+            alert("Select Path or Browse");
+        }
+    });
+    $(document).on("click","#capture",function(e) 
+    {
+        e.preventDefault();
+        $("#save_path").hide();
+        $('#web_dir').trigger('click');
+    });
+    $(document).on("click",".hiddenfile",function() 
+    {
+       
+        $('#web_dir').trigger("click");
+    });
+    $(document).on("click",".remove_list",function() {
+        var src1=$(this).parent().html();
+        var id =$(this).attr("id");
+    alert(id);
+       delete_file(id)
+        $(this).parent().remove();
+    });
+ 
+    function delete_file(del_id)
+    {
+        var mysql      = require('mysql');
+            var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+          });
+          
+        connection.connect();
+        var sql_qry =  "Delete from rvm_player_list where id="+del_id;
+        console.log(sql_qry);
+        connection.query(sql_qry, function (error, results, fields) {
+        if (error) console.log(error.code);
+        else 
+        {
+           
+        }
+        });
+        connection.end(); 
+    }
+   
+    
+   
+    function update_path(len,res)
+    {
+        var mysql      = require('mysql');
+            var connection = mysql.createConnection({
+            host     : 'localhost',
+            user     : 'root',
+            password : null,
+            database : 'music_lib'
+          });
+          
+        connection.connect();
+        if(len==0)
+        {
+            var sql_qry =  "INSERT INTO rvm_access_folder (path, created_by) VALUES ('"+res+"', '"+user_id+"')";
+        }
+        else 
+        {
+            var sql_qry =  "UPDATE rvm_access_folder SET path='"+res+"',created_by="+user_id;
+        }
+        connection.query(sql_qry, function (error, results, fields) {
+        if (error) console.log(error.code);
+        else 
+        {
+            $("#save_path").hide();
+        }
+        });
+        connection.end(); 
+    }
+    function file_info(data)
+    {
+        data = data.replace("//", '/');
+        var jsmediatags = require("jsmediatags");
+        jsmediatags.read(data, {
+        onSuccess: function(tag) {
+            // console.log(tag);
+            if (tag.tags.title) 
+            {
+                var trackName = tag.tags.title;
+                var trackArtist = tag.tags.artist;
+                var trackAlbum= tag.tags.album;
+                $("#track").html(trackName);
+                $("#artist").html(trackArtist);
+                $("#album").html(trackAlbum);
+            }
+            else
+            {
+                const path = require('path');
+                var filename = data;
+                path.parse(filename).name;
+                $("#track").html(path.parse(filename).name);
+            }
+        var image = tag.tags.picture;
+                if (image) {
+                //var pic = document.getElementById('picture')
+                var base64String = "";
+                for (var i = 0; i < image.data.length; i++) {
+                    base64String += String.fromCharCode(image.data[i]);
+                }
+                var base64 = "data:image/jpeg;base64," +
+                window.btoa(base64String);
+                document.getElementById('picture').style.display = "block";
+                document.getElementById('picture').setAttribute('src', base64);
+                // pic.style.backgroundImage = "url('" + base64 +"') ";
+                } else {
+                document.getElementById('picture').setAttribute('src', "img/rvm.png");
+                // pic.style.backgroundImage = "none";                  
+                }
+    },
+    onError: function(error) {
+        console.log(':(', error.type, error.info);
+    }
+ });
+}
+</script>
+</body>
+<script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+</script>
+</html>
