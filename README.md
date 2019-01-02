@@ -1,4 +1,4 @@
-# electron-quick-start
+# electron-player
 
 **Clone and run for a quick way to see Electron in action.**
 
@@ -18,15 +18,12 @@ To clone and run this repository you'll need [Git](https://git-scm.com) and [Nod
 
 ```bash
 # Clone this repository
-git clone https://github.com/inagaraj/Electron-App.git
+git clone https://github.com/inagaraj/electron-player.git
 # Go into the repository
-cd electron-quick-start
+cd electron-player
 # install electron 
 npm install electron 
 # Install dependencies
 npm install
 # Run the app
 npm start
-```
-
-
